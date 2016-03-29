@@ -5,7 +5,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.persistence.*;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
@@ -19,10 +18,8 @@ import java.time.LocalDateTime;
         @NamedQuery(name = UserMeal.GET, query = "SELECT um FROM UserMeal um WHERE um.id=:id AND um.user.id=:userId"),
         @NamedQuery(name = UserMeal.GET_ALL, query = "SELECT um FROM UserMeal um WHERE um.user.id=:userId " +
                 "ORDER BY um.dateTime DESC"),
-        @NamedQuery(name = UserMeal.GET_BETWEEN, query = "SELECT um FROM UserMeal um WHERE um.user.id=:userId ")
-//        +
-//                "AND um.dateTime BETWEEN :startDate AND :endDate ORDER BY um.dateTime DESC")
-,
+        @NamedQuery(name = UserMeal.GET_BETWEEN, query = "SELECT um FROM UserMeal um WHERE um.user.id=:userId "
+       + "AND um.dateTime BETWEEN :startDate AND :endDate ORDER BY um.dateTime DESC"),
         @NamedQuery(name = UserMeal.DELETE, query = "DELETE FROM UserMeal um WHERE um.id=:id AND um.user.id=:userId"),
         @NamedQuery(name = UserMeal.UPDATE, query = "UPDATE UserMeal um SET um.calories=:calories, " +
                 "um.dateTime=:dateTime, um.description=:description WHERE um.id=:id AND um.user.id=:userId")
@@ -47,7 +44,6 @@ public class UserMeal extends BaseEntity {
     protected int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    //@Column(name = "user_id")
     @NotNull
     private User user;
 
@@ -107,18 +103,5 @@ public class UserMeal extends BaseEntity {
                 '}';
     }
 
-    @Converter(autoApply = true)
-    public class LocalDateTimeAttributeConverter implements AttributeConverter<LocalDateTime, Timestamp> {
-
-        @Override
-        public Timestamp convertToDatabaseColumn(LocalDateTime locDateTime) {
-            return (locDateTime == null ? null : Timestamp.valueOf(locDateTime));
-        }
-
-        @Override
-        public LocalDateTime convertToEntityAttribute(Timestamp sqlTimestamp) {
-            return (sqlTimestamp == null ? null : sqlTimestamp.toLocalDateTime());
-        }
-    }
 }
 
