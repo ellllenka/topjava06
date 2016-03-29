@@ -1,22 +1,54 @@
 package ru.javawebinar.topjava.model;
 
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
+import org.hibernate.validator.constraints.NotEmpty;
+
+import javax.persistence.*;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
  * GKislin
  * 11.01.2015.
  */
+
+@Entity
+@Table(name = "meals") //, uniqueConstraints = {@UniqueConstraint(columnNames = "email", name = "users_unique_email_idx")})
+@NamedQueries({
+        @NamedQuery(name = UserMeal.GET, query = "SELECT um FROM UserMeal um WHERE um.id=:id AND um.user.id=:userId"),
+        @NamedQuery(name = UserMeal.GET_ALL, query = "SELECT um FROM UserMeal um WHERE um.user.id=:userId " +
+                "ORDER BY um.dateTime DESC"),
+        @NamedQuery(name = UserMeal.GET_BETWEEN, query = "SELECT um FROM UserMeal um WHERE um.user.id=:userId ")
+//        +
+//                "AND um.dateTime BETWEEN :startDate AND :endDate ORDER BY um.dateTime DESC")
+,
+        @NamedQuery(name = UserMeal.DELETE, query = "DELETE FROM UserMeal um WHERE um.id=:id AND um.user.id=:userId"),
+        @NamedQuery(name = UserMeal.UPDATE, query = "UPDATE UserMeal um SET um.calories=:calories, " +
+                "um.dateTime=:dateTime, um.description=:description WHERE um.id=:id AND um.user.id=:userId")
+})
 public class UserMeal extends BaseEntity {
 
+    public static final String GET = "UserMeal.get";
+    public static final String GET_ALL = "UserMeal.getAll";
+    public static final String GET_BETWEEN = "UserMeal.getBetween";
+    public static final String DELETE = "UserMeal.delete";
+    public static final String UPDATE = "UserMeal.update";
+
+    @Column(name = "date_time")
     private LocalDateTime dateTime;
 
+    @NotEmpty
+    @Column(name = "description", nullable = false)
     private String description;
 
+    @Column(name = "calories")
+    @Digits(fraction = 0, integer = 4)
     protected int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    //@Column(name = "user_id")
+    @NotNull
     private User user;
 
     public UserMeal() {
@@ -74,4 +106,19 @@ public class UserMeal extends BaseEntity {
                 ", calories=" + calories +
                 '}';
     }
+
+    @Converter(autoApply = true)
+    public class LocalDateTimeAttributeConverter implements AttributeConverter<LocalDateTime, Timestamp> {
+
+        @Override
+        public Timestamp convertToDatabaseColumn(LocalDateTime locDateTime) {
+            return (locDateTime == null ? null : Timestamp.valueOf(locDateTime));
+        }
+
+        @Override
+        public LocalDateTime convertToEntityAttribute(Timestamp sqlTimestamp) {
+            return (sqlTimestamp == null ? null : sqlTimestamp.toLocalDateTime());
+        }
+    }
 }
+
